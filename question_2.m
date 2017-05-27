@@ -2,7 +2,7 @@
 clear;
 close all;
 
-mode=1;%模式切换，M=1为普通PID，M=2为RBF-PID
+mode=2;%模式切换，M=1为普通PID，M=2为RBF-PID
 
 xite=0.1;%学习速率
 alpha=0.05;%动量因子
@@ -34,9 +34,9 @@ xc=[0 0 0]';
 error_1=0;
 error_2=0;
 
-kp0=0.03;
-ki0=0.01;
-kd0=0.03;
+kp0=0.0;
+ki0=0.0;
+kd0=0.0;
 
 kp_1=kp0;
 kd_1=kd0;
@@ -47,7 +47,7 @@ xiteki=0.20;
 xitekd=0.20;
 
 ts=0.001;
-time=ts:ts:2;%时间序列
+time=ts:ts:3;%时间序列
 rin=sign(sin(1.5*pi*time));%输入信号
 yout=zeros(size(time));
 ymout=zeros(size(time));
@@ -56,9 +56,9 @@ error=zeros(size(time));
 kp=zeros(size(time));
 ki=zeros(size(time));
 kd=zeros(size(time));
-for k=1:2000
+
+for k=1:length(time)
     yout(k) = (-0.2 * y_1 + u_1) / (5 + y_1^2);%非线性模型
-    
     for j=1:m
         h(j) = exp(-norm(x-ci(:,j))^2/(2*bi(j)*bi(j)));
     end
@@ -74,9 +74,12 @@ for k=1:2000
             d_ci(i,j)=xite*(yout(k)-ymout(k))*h(j)*w(j)*(x(i)-ci(i,j))*(bi(j)^-2);
         end
     end
-    w=w_1+d_w+alpha*(w_1-w_2)+beta*(w_2-w_3);
-    bi=bi_1+d_bi+alpha*(bi_1-bi_2)+beta*(bi_2-bi_3);
-    ci=ci_1+d_ci+alpha*(ci_1+ci_2)+beta*(ci_2-ci_3);
+%     w=w_1+d_w+alpha*(w_1-w_2)+beta*(w_2-w_3);
+%     bi=bi_1+d_bi+alpha*(bi_1-bi_2)+beta*(bi_2-bi_3);
+%     ci=ci_1+d_ci+alpha*(ci_1+ci_2)+beta*(ci_2-ci_3);
+    w=w_1+d_w+alpha*(w_1-w_2);
+    bi=bi_1+d_bi+alpha*(bi_1-bi_2);
+    ci=ci_1+d_ci+alpha*(ci_1+ci_2);
     
     %Jacobian信息
     yu=0;
@@ -153,14 +156,14 @@ legend('输入信号','输出信号')
 % ylabel('Jacobian value');
 figure(4)
 subplot(311)
-plot(time(1:20),kp(1:20),'r');
+plot(time,kp,'r');
 xlabel('time(s)');
 ylabel('Kp');
 subplot(312)
-plot(time(1:20),ki(1:20),'r');
+plot(time,ki,'r');
 xlabel('time(s)');
 ylabel('Ki');
 subplot(313)
-plot(time(1:20),kd(1:20),'r');
+plot(time,kd,'r');
 xlabel('time(s)');
 ylabel('Kd');
