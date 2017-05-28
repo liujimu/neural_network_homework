@@ -2,14 +2,14 @@
 clear;
 close all;
 
-mode=2;%模式切换，M=1为普通PID，M=2为RBF-PID
+mode=1;%模式切换，M=1为普通PID，M=2为RBF-PID
 
 xite=0.1;%学习速率
 alpha=0.05;%动量因子
 beta=0.01;
 x=[0 0 0]';
 
-m=5;%隐层节点数
+m=10;%隐层节点数
 ci=30*ones(3,m);%中心矢量
 bi=40*ones(m,1);%节点宽度
 w=10*ones(m,1);
@@ -34,9 +34,9 @@ xc=[0 0 0]';
 error_1=0;
 error_2=0;
 
-kp0=0.0;
-ki0=0.0;
-kd0=0.0;
+kp0=0.1;
+ki0=0.1;
+kd0=0.1;
 
 kp_1=kp0;
 kd_1=kd0;
@@ -56,6 +56,8 @@ error=zeros(size(time));
 kp=zeros(size(time));
 ki=zeros(size(time));
 kd=zeros(size(time));
+du=zeros(size(time));
+u=zeros(size(time));
 
 for k=1:length(time)
     yout(k) = (-0.2 * y_1 + u_1) / (5 + y_1^2);%非线性模型
@@ -79,7 +81,7 @@ for k=1:length(time)
 %     ci=ci_1+d_ci+alpha*(ci_1+ci_2)+beta*(ci_2-ci_3);
     w=w_1+d_w+alpha*(w_1-w_2);
     bi=bi_1+d_bi+alpha*(bi_1-bi_2);
-    ci=ci_1+d_ci+alpha*(ci_1+ci_2);
+    ci=ci_1+d_ci+alpha*(ci_1-ci_2);
     
     %Jacobian信息
     yu=0;
@@ -107,7 +109,7 @@ for k=1:length(time)
         case 2  %普通PID
             kp(k)=kp0;
             ki(k)=ki0;
-            kd(k)=kd0+1;
+            kd(k)=kd0;
     end
     
     du(k)=kp(k)*xc(1)+kd(k)*xc(2)+ki(k)*xc(3);
@@ -143,18 +145,14 @@ for k=1:length(time)
 end
 figure(1)%输入输出对比
 plot(time ,rin,'b',time,yout,'r');
-xlabel('time(s)');
+xlabel('时间(s)');
 ylabel('输入输出');
 legend('输入信号','输出信号')
-% figure(2)%
-% plot(time,yout,'r',time,ymout,'b');
-% xlabel('time(s)');
-% ylabel('yout,ymout');
-% figure(3);
-% plot(time,dyout)
-% xlabel('time(s)');
-% ylabel('Jacobian value');
-figure(4)
+figure(2)
+plot(time,error);
+xlabel('时间(s)');
+ylabel('跟踪误差');
+figure(3)
 subplot(311)
 plot(time,kp,'r');
 xlabel('time(s)');
