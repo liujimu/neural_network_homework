@@ -6,7 +6,6 @@ mode=1;%模式切换，M=1为普通PID，M=2为RBF-PID
 
 xite=0.1;%学习速率
 alpha=0.05;%动量因子
-beta=0.01;
 x=[0 0 0]';
 
 m=10;%隐层节点数
@@ -60,11 +59,11 @@ du=zeros(size(time));
 u=zeros(size(time));
 
 for k=1:length(time)
-    yout(k) = (-0.2 * y_1 + u_1) / (5 + y_1^2);%非线性模型
+    yout(k)=(-0.2*y_1+u_1)/(5+y_1^2);%非线性模型
     for j=1:m
-        h(j) = exp(-norm(x-ci(:,j))^2/(2*bi(j)*bi(j)));
+        h(j)=exp(-norm(x-ci(:,j))^2/(2*bi(j)*bi(j)));
     end
-    ymout(k) = w'*h;%网络辨识输出
+    ymout(k)=w'*h;%网络辨识输出
     
     d_w=0*w;
     d_bi=0*bi;
@@ -76,9 +75,6 @@ for k=1:length(time)
             d_ci(i,j)=xite*(yout(k)-ymout(k))*h(j)*w(j)*(x(i)-ci(i,j))*(bi(j)^-2);
         end
     end
-%     w=w_1+d_w+alpha*(w_1-w_2)+beta*(w_2-w_3);
-%     bi=bi_1+d_bi+alpha*(bi_1-bi_2)+beta*(bi_2-bi_3);
-%     ci=ci_1+d_ci+alpha*(ci_1+ci_2)+beta*(ci_2-ci_3);
     w=w_1+d_w+alpha*(w_1-w_2);
     bi=bi_1+d_bi+alpha*(bi_1-bi_2);
     ci=ci_1+d_ci+alpha*(ci_1-ci_2);
@@ -93,7 +89,11 @@ for k=1:length(time)
 
     %计算PID参数
     switch mode
-        case 1  %RBF_PID
+        case 1  %普通PID
+            kp(k)=kp0;
+            ki(k)=ki0;
+            kd(k)=kd0;
+        case 2  %RBF_PID
             kp(k)=kp_1+xitekp*error(k)*dyout(k)*xc(1);
             kd(k)=kd_1+xitekd*error(k)*dyout(k)*xc(2);
             ki(k)=ki_1+xiteki*error(k)*dyout(k)*xc(3);
@@ -106,10 +106,6 @@ for k=1:length(time)
             if ki(k)<0
                 ki(k)=0;
             end
-        case 2  %普通PID
-            kp(k)=kp0;
-            ki(k)=ki0;
-            kd(k)=kd0;
     end
     
     du(k)=kp(k)*xc(1)+kd(k)*xc(2)+ki(k)*xc(3);
